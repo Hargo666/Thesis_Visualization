@@ -1,0 +1,1 @@
+A simple visualization for Theorem 3.1 in my [master's thesis](https://qspace.library.queensu.ca/handle/1974/8096).
