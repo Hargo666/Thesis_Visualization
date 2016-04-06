@@ -9,9 +9,6 @@ AGENTS = 150  # the number of agents
 EPSILON = .3 # The degree to which two agents will move their opinion. For instance epislon = .3 means that an agent will retain 70% of its opinion and take on 30% of the opionion of the agent it is communicating with
 DRIFT = 1 #defines how much the opinions should drift away from the center
 
-
-
-
 #########################################
 # Opinion Changing Functions
 #########################################
