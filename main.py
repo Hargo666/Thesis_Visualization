@@ -5,7 +5,7 @@ from matplotlib import pyplot as plt
 from matplotlib import animation
 
 STEPS = 5 # the number of previous steps to display
-AGENTS = 10 # the number of agents
+AGENTS = 150  # the number of agents
 EPSILON = .3 # The degree to which two agents will move their opinion. For instance epislon = .3 means that an agent will retain 70% of its opinion and take on 30% of the opionion of the agent it is communicating with
 DRIFT = 1 #defines how much the opinions should drift away from the center
 
@@ -24,8 +24,8 @@ def generate_agreement_matrix(x, ep=EPSILON):
     global EPSILON value, or one given by the user."""
     A = np.identity(AGENTS)
 
-    a = random.randint(0,9)
-    b = random.randint(0,9)
+    a = random.randint(0,AGENTS-1)
+    b = random.randint(0,AGENTS-1)
     if a==b: return A # if an agent communicates only with itself, then no one communicates
     
 
@@ -36,7 +36,7 @@ def generate_agreement_matrix(x, ep=EPSILON):
     
     return A
     
-def drift(x, d=1):
+def drift(x, d=.1):
     """Generates the drift term. Each agent's opinion will move away from the average."""
     av = np.mean(x)
     
@@ -47,8 +47,8 @@ def drift(x, d=1):
     return dr
     
 def generate_lines(total_steps = 1000):
+    """Starts all of the opinions at zero and then steps through the agent's communications."""
     opinions = [np.zeros((STEPS,AGENTS))] # everyone's opinion begins at 0
-    
     
     for i in range(0,total_steps):
         current_step = opinions[i]
@@ -75,34 +75,19 @@ def generate_lines(total_steps = 1000):
 x_opinions = generate_lines()
 y_opinions = generate_lines()
 
+fig = plt.figure()
+ax = plt.axes(xlim=(-100, 100), ylim=(-100, 100))
+lines = [ax.plot([], [])[0] for i in range(0,AGENTS)]
 
-
-def init():
-    """Initialize the lines to empty"""
-    line.set_data([], [])
-    return line,
-
-def animate(i):
-    
+def animate(i,j,lines):
+    """Cycles through the opinions and displays them."""
     x = x_opinions[i]
     y = y_opinions[i]
     
-    print x
+    for j in range(0,AGENTS):
+        lines[j].set_data(x[:,j], y[:,j])
     
-    line.set_data(x[0], y[0])
-    
-    return line,
-    
+    return lines
 
-    
-fig = plt.figure()
-ax = plt.axes(xlim=(-100, 100), ylim=(-100, 100))
-line, = ax.plot([], [])
-
-#
-#
-# # call the animator.  blit=True means only re-draw the parts that have changed.
-anim = animation.FuncAnimation(fig, animate, init_func=init,
-                               frames=2000, interval=20)
-#
+anim = animation.FuncAnimation(fig, animate, fargs=(1,lines), frames=2000, interval=20)
 plt.show()
