@@ -1,83 +1,108 @@
 
-
+import random
 import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib import animation
-import random
 
-STEPS = 10000
-AGENTS = 10
-EPSILON = .3
+STEPS = 5 # the number of previous steps to display
+AGENTS = 10 # the number of agents
+EPSILON = .3 # The degree to which two agents will move their opinion. For instance epislon = .3 means that an agent will retain 70% of its opinion and take on 30% of the opionion of the agent it is communicating with
+DRIFT = 1 #defines how much the opinions should drift away from the center
 
-def communicate(x):
+
+
+
+#########################################
+# Opinion Changing Functions
+#########################################
+
+def generate_agreement_matrix(x, ep=EPSILON):
+    """Simulates communication between the agents.
     
-    
+    Takes the current opinions of the agents along one dimension, uniformly
+    selects two agents to communicate and then updates their values according to the
+    global EPSILON value, or one given by the user."""
+    A = np.identity(AGENTS)
+
     a = random.randint(0,9)
     b = random.randint(0,9)
-    if a==b: return x
+    if a==b: return A # if an agent communicates only with itself, then no one communicates
     
-    A = np.identity(AGENTS)
+
+    A[a,a] = 1-ep
+    A[b,b] = 1-ep
+    A[a,b] = ep
+    A[b,a] = ep
     
-    A[a,a] = 1-EPSILON
-    A[b,b] = 1-EPSILON
-    A[a,b] = EPSILON
-    A[b,a] = EPSILON
+    return A
     
-    print A
+def drift(x, d=1):
+    """Generates the drift term. Each agent's opinion will move away from the average."""
+    av = np.mean(x)
     
-    return np.dot(x,A)
+    dr = np.zeros(AGENTS)
+    for i in range(0,AGENTS):
+        dr[i] = x[i]<av and -d or d
+    
+    return dr
+    
+def generate_lines(total_steps = 1000):
+    opinions = [np.zeros((STEPS,AGENTS))] # everyone's opinion begins at 0
+    
+    
+    for i in range(0,total_steps):
+        current_step = opinions[i]
+        
+        x = current_step[0]
+        A = generate_agreement_matrix(x)
+        omega = np.random.normal(size=(1,AGENTS))
+        
+        new_opinion = np.dot(x, A)+drift(x)+omega
+        
+        new_step = np.concatenate((new_opinion,current_step))
+        opinions.append(new_step[:STEPS])
+    
+    return opinions
+
+
+
+
+    
+#########################################
+# Animation Functions
+#########################################
+
+x_opinions = generate_lines()
+y_opinions = generate_lines()
 
 
 
 def init():
+    """Initialize the lines to empty"""
     line.set_data([], [])
     return line,
 
-x_opinion = np.zeros((STEPS,AGENTS))
-y_opinion = np.zeros((STEPS,AGENTS))
-
-x_opinion[0] = np.random.randint(-100,100,(1,AGENTS))
-y_opinion[0] = np.random.randint(-100,100,(1,AGENTS))
-
-print x_opinion
-
 def animate(i):
-    if i>0:
-        x_opinion[i] = communicate(x_opinion[i-1])+np.random.normal(size=(1,AGENTS))
-        y_opinion[i] = communicate(y_opinion[i-1])+np.random.normal(size=(1,AGENTS))
     
+    x = x_opinions[i]
+    y = y_opinions[i]
     
+    print x
     
+    line.set_data(x[0], y[0])
     
-    x = x_opinion[i]
-    y = y_opinion[i]
-    line.set_data(x, y)
     return line,
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
- # First set up the figure, the axis, and the plot element we want to animate
-fig = plt.figure()
-ax = plt.axes(xlim=(-1000, 1000), ylim=(-1000, 1000))
-line, = ax.plot([], [], 'bo')  
-    
 
-# call the animator.  blit=True means only re-draw the parts that have changed.
+    
+fig = plt.figure()
+ax = plt.axes(xlim=(-100, 100), ylim=(-100, 100))
+line, = ax.plot([], [])
+
+#
+#
+# # call the animator.  blit=True means only re-draw the parts that have changed.
 anim = animation.FuncAnimation(fig, animate, init_func=init,
                                frames=2000, interval=20)
-
-
+#
 plt.show()
